@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="apple-touch-icon" sizes="57x57" href="/static/assets/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/static/assets/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/static/assets/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/static/assets/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/static/assets/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/static/assets/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/static/assets/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/static/assets/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/assets/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/static/assets/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/assets/favicon-16x16.png">
+    <link rel="manifest" href="/static/assets/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+    <style>
+        @keyframes customBounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .animate-custom-bounce {
+            animation: customBounce 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-400 via-indigo-700 to-black min-h-screen flex items-center justify-center">
+<div class="max-w-7xl w-full mx-auto bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-6 text-white">
+    <img src="/static/assets/android-icon-192x192.png" class="h-14 w-14 mx-auto animate-custom-bounce" alt="Bot">
+
+    <h2 class="text-2xl font-bold text-center mb-4 animate-fade-in">University Chatbot</h2>
+    <!-- Chat Window -->
+    <div id="chat-window" class="h-80 overflow-y-auto bg-white p-4 rounded-lg space-y-2 animate-slide-in">
+        <div class="self-start max-w-xs bg-indigo-500 rounded-2xl shadow-2xl text-white p-3 rounded-lg">Hello! How can I
+            assist you?
+        </div>
+        <!-- Typing Indicator -->
+        <div id="typing-indicator" class="hidden animate-bounce text-gray-400 mt-2">Chatbot is typing...</div>
+
+    </div>
+
+    <!-- Input Area -->
+    <div class="mt-4 flex space-x-2">
+        <input id="userInput" type="text" placeholder="Type your message..."
+               class="flex-1 p-3 bg-gray-800/80 border border-gray-600 text-white rounded-2xl focus:outline-none">
+        <button onclick="sendMessage()" class="bg-indigo-500 px-4 py-3 rounded-full hover:bg-indigo-600 transition">
+            Send
+        </button>
+    </div>
+</div>
+
+<script>
+    document.getElementById("userInput").addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    });
+
+    function sendMessage() {
+        let typingIndicator = document.getElementById("typing-indicator");
+        let userInput = document.getElementById("userInput").value;
+        let chatWindow = document.getElementById("chat-window");
+        if (!userInput.trim()) return;
+
+        document.getElementById("userInput").value = "";
+
+        let userBubble = document.createElement("div");
+        userBubble.className = "self-end max-w-xs bg-gray-400 text-white p-3 rounded-2xl shadow-xl ml-auto";
+        userBubble.textContent = 'You: ' + userInput;
+        chatWindow.appendChild(userBubble);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        // Show typing indicator
+        typingIndicator.classList.remove("hidden");
+
+        try {
+            fetch("/chat", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({message: userInput})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    typingIndicator.classList.add("hidden");
+                    let botBubble = document.createElement("div");
+                    botBubble.className = "self-start max-w-4xl bg-indigo-500 text-white p-3 rounded-2xl shadow-xl";
+                    botBubble.innerHTML = "Bot: " + data.response;
+                    chatWindow.appendChild(botBubble);
+                    chatWindow.scrollTop = chatWindow.scrollHeight;
+                });
+        } catch (error) {
+            console.error("Error communicating with chatbot:", error);
+            typingIndicator.classList.add("hidden");
+        }
+    }
+</script>
+</body>
+</html>
